@@ -6,6 +6,7 @@ import threading as thr
 HIM = "127.0.0.1"
 running = True
 
+
 def listen(sck):
     print("Listener starting...")
     while running:
@@ -53,12 +54,14 @@ listener = thr.Thread(target=listen, args=(useme,))
 listener.start()
 while 1:
     sendme = input("> ").encode() + b"ROGER"
-    if sendme == b"off":
+    if sendme == b"offROGER":
         break
     useme.sendall(sendme)
 
 # Teardown
 running = False
-print("Shutting down...")
-time.sleep(10)
-print("1")
+for i in range(3, 0, -1):
+    print("\rShutting down... {}".format(i), end="")
+    time.sleep(1)
+print()
+print("Finite Incantatum")

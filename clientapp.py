@@ -7,7 +7,12 @@ from tkinter import *
 from tkinter import messagebox as tkmb
 
 HIM = "127.0.0.1"
-MAXLINE = 200
+MAXLINE = 20
+
+
+def my_ip():
+    return socket.gethostbyname(socket.gethostname())
+
 
 class Main(Tk):
 
@@ -28,12 +33,12 @@ class Main(Tk):
         self.label.pack(fill=BOTH)
         fr = Frame(self)
         fr.pack()
-        self.lb = Listbox(fr, width=80, height=20, state=DISABLED)
+        self.lb = Listbox(fr, width=80, height=MAXLINE)
         self.lb.pack(side=RIGHT)
-        sb = Scrollbar(fr)
-        sb.pack(side=RIGHT)
-        self.lb.config(yscrollcommand=sb.set)
-        sb.config(command=self.lb.yview)
+        # sb = Scrollbar(fr)
+        # sb.pack(side=RIGHT)
+        # self.lb.config(yscrollcommand=sb.set)
+        # sb.config(command=self.lb.yview)
 
         self.entry = Entry(self, show="*")
         self.entry.bind("<Return>", self.authenticate)
@@ -43,9 +48,10 @@ class Main(Tk):
     def inject_line(self, line):
         lbs = self.lb.size()
         if lbs >= MAXLINE:
-            self.lb.delete(0)
-            for i in range(1, lbs):
-                self.lb.insert(i-1, self.lb.get(i))
+            items = [self.lb.get(i) for i in range(lbs)]
+            self.lb.delete(0, END)
+            for item in items[1:]:
+                self.lb.insert(END, item)
         self.lb.insert(END, line)
         self.lb.see(END)
 
@@ -76,11 +82,23 @@ class Main(Tk):
         self.connected = True
         self.listener.start()
 
+    def serve(self):
+        self.socket.bind((my_ip(), 12345))
+        self.socket.listen(1)
+        self.socket, addr = self.socket.accept()
+        self.inject_line("SRV: kapcsolat innen: " + addr)
+
+        hasher = hashlib.sha1()
+        psw = b""
+        while psw[-5:] != b"ROGER":
+            psw += self.socket.recv(1024)
+        hasher.update(psw[:-5])
+        theirhash = hasher.digest()
+
     def authenticate(self, event=None):
         del event
         hasher = hashlib.sha1()
         pw = self.entry.get()
-        print("pw:", pw)
         if not pw:
             return
         hasher.update(pw.encode())
@@ -98,7 +116,7 @@ class Main(Tk):
             print("Client listener: Awaiting connection...")
         while self.running:
             msg = b""
-            while msg[-5:] != b"ROGER":
+            while msg[-5:] != b"ROGER" and self.running:
                 msg += self.socket.recv(1024)
                 time.sleep(0.1)
             self.inject_line("Ő: " + msg[:-5].decode("utf8"))
