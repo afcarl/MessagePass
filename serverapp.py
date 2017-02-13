@@ -4,7 +4,7 @@ import threading as thr
 
 from tkinter import messagebox as tkmb
 
-from application import Application
+from application import Application, PORT
 
 HER = "127.0.0.1"
 ME = "127.0.0.1"
@@ -15,35 +15,33 @@ class MsgServer(Application):
     def __init__(self):
         super(MsgServer, self).__init__()
         self.title("Szerver")
-
-        self.csocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.csocket.settimeout(3)
-        self.csocket.bind((ME, 12345))
-        self.msocket = None
-
         self.connector = thr.Thread(target=self.connect)
         self.listener = thr.Thread(target=self.listen)
         self.sender = thr.Thread(target=self.send_messages)
 
+        self.connector.start()
+
     def connect(self):
+        csocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        csocket.settimeout(1)
+        csocket.bind((ME, PORT))
+
         self.set_label("Várakozás kapcsolatra...")
-        self.csocket.listen(1)
+        csocket.listen(1)
         while self.running:
             try:
-                self.msocket, addr = self.csocket.accept()
+                self.msocket, addr = csocket.accept()
             except socket.timeout:
                 pass
             else:
                 if addr[0] != HER:
                     tkmb.showwarning("Ajjaj", f"Bejövő cím: {HER} helyett {addr[0]}")
-                else:
-                    print(f"Connection from {addr}")
+                csocket.close()
                 break
         else:
             print("Connector nice exit!")
             return
-
-        self.msocket.settimeout(1)
+        self.msocket.settimeout(0.5)
         while self.pwhash is None:
             time.sleep(1)
 

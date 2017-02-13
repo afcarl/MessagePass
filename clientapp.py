@@ -4,7 +4,7 @@ import threading as thr
 
 from tkinter import messagebox as tkmb
 
-from application import Application
+from application import Application, PORT
 
 HIM = "127.0.0.1"
 
@@ -16,8 +16,7 @@ class MsgClient(Application):
         self.title("Kliens")
 
         self.msocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.msocket.settimeout(1)
-
+        self.msocket.settimeout(0.5)
         self.connector = thr.Thread(target=self.connect)
         self.listener = thr.Thread(target=self.listen)
         self.sender = thr.Thread(target=self.send_messages)
@@ -28,8 +27,9 @@ class MsgClient(Application):
         self.set_label("Várakozás kapcsolatra...")
         while self.running:
             try:
-                self.msocket.connect((HIM, 12345))
+                self.msocket.connect((HIM, PORT))
             except ConnectionRefusedError:
+                print("No server!")
                 time.sleep(1)
             except socket.timeout:
                 pass

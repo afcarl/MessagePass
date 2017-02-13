@@ -4,11 +4,11 @@ import hashlib
 import datetime
 
 from tkinter import *
-from tkinter import messagebox as tkmb
 
 from Crypto.Cipher import AES
 
 MAXLINE = 20
+PORT = 1234
 
 
 class Application(Tk):
@@ -66,7 +66,10 @@ class Application(Tk):
         print("Listener starting...")
         while self.running:
             crypt = b""
-            while crypt[-5:] != b"ROGER" and self.running:
+            while crypt[-5:] != b"ROGER":
+                if not self.running:
+                    print("Listener nice exit!")
+                    return
                 try:
                     crypt += self.msocket.recv(1024)
                 except socket.timeout:
@@ -98,9 +101,7 @@ class Application(Tk):
     def teardown(self):
         print("Received Teardown command")
         self.running = False
-        for i in range(3, 0, -1):
-            time.sleep(1)
-            self.label.config(text=f"Kilépés... {i}")
+        time.sleep(1)
         if self.msocket is not None:
             self.msocket.close()
         self.destroy()
