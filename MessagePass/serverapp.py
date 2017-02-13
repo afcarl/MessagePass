@@ -1,10 +1,9 @@
-import time
 import socket
 import threading as thr
-
+import time
 from tkinter import messagebox as tkmb
 
-from application import Application, PORT
+from MessagePass.application import Application, PORT
 
 HER = "127.0.0.1"
 ME = "127.0.0.1"
