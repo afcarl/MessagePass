@@ -28,7 +28,7 @@ class Main(Tk):
         self.label.pack(fill=BOTH)
         fr = Frame(self)
         fr.pack()
-        self.lb = Listbox(fr, width=80, height=20, state=DISABLED)
+        self.lb = Listbox(fr, width=80, height=20)
         self.lb.pack(side=RIGHT)
         sb = Scrollbar(fr)
         sb.pack(side=RIGHT)
